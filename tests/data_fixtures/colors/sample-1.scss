@@ -1,0 +1,12 @@
+// Some colors
+.foo{
+    color: #ff8702;
+}
+
+.bar{
+    color: #6676a2;
+
+    &::after{
+        color: #4c4c92;
+    }
+}

@@ -1,0 +1,15 @@
+# virtualenv
+/venv
+
+#egg's specific
+*.egg-info
+
+#defaults
+/dist
+*.pyc
+*.pyo
+
+#tests
+.tox
+.cache
+__pycache__

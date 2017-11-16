@@ -18,7 +18,7 @@ def test_empty(caplog, settings):
         test_cwd = os.getcwd()
 
         # Default verbosity
-        result = runner.invoke(cli_frontend, ['colors']+[])
+        result = runner.invoke(cli_frontend, ['colors'])
 
         assert caplog.record_tuples == [
             (
@@ -40,7 +40,7 @@ def test_doesnotexists(caplog, settings):
         test_cwd = os.getcwd()
 
         # Default verbosity
-        result = runner.invoke(cli_frontend, ['colors']+['foo.txt'])
+        result = runner.invoke(cli_frontend, ['colors'] + ['foo.txt'])
 
         assert caplog.record_tuples == []
 
@@ -56,9 +56,22 @@ def test_single(caplog, settings):
     with runner.isolated_filesystem():
         test_cwd = os.getcwd()
 
+        source_args = [
+            'sample-1.scss',
+        ]
+        source_args = [os.path.join(settings.colors_path, item)
+                       for item in source_args]
+
         # Default verbosity
-        result = runner.invoke(cli_frontend, ['colors']+['foo.txt'])
+        result = runner.invoke(cli_frontend, ['colors'] + source_args)
 
         assert result.exit_code == 0
 
-        assert caplog.record_tuples == []
+        assert caplog.record_tuples == [
+            (
+                'sveetoy',
+                20,
+                "Searching files for colors"
+            ),
+        ]
+

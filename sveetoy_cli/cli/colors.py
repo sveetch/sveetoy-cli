@@ -17,4 +17,4 @@ def colors_command(context, sources):
         raise click.Abort()
     print(sources)
 
-    logger.info(u"Loading given files")
+    logger.info("Searching files for colors")

@@ -3,6 +3,7 @@
 .. _colorama: https://github.com/tartley/colorama
 .. _colorlog: https://github.com/borntyping/python-colorlog
 .. _Sveetoy: https://sveetch.github.io/Sveetoy/
+.. _colorutils: https://github.com/edaniszewski/colorutils
 
 ===================
 Sveetoy Commandline
