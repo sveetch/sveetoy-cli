@@ -8,104 +8,121 @@ Require:
     pip install colorutils
 
 TODO: * Parse all existing *.scss/*.css files from given directory (instead of SCSS_FILES)
+        -> Glob finding
       * When a color name is used more than one time, increment names with "_[+1]" for all other identic names;
+        -> A dict to store occurences to a name with each color
       * Procedure to replace hexadecimal, rgb, and rgba colors with their variable name (using their finded name);
+        -> Output valid Sass vars but never rewrite searched files, this is out of scope, maybe store color locations (filepath and line) ?
 """
-import json, os, re
+import os, re
 
-import colorutils
+from pathlib import Path
 
-SCSS_FILES = [
-    'scss/app.scss',
-]
+from colour import Color
 
-class ColorNames:
+
+class ColorFinder:
     """
-    Gist: https://gist.github.com/jdiscar/9144764
-
-    Original Author  Ernesto P. Adorio, Ph.D
-    Original Source: http://my-other-life-as-programmer.blogspot.com/2012/02/python-finding-nearest-matching-color.html
-    Modifed By: JDiscar
-
-    This class maps an RGB value to the nearest color name it can find. Code is modified to include
-    ImageMagick names and WebColor names.
-
-    1. Modify the minimization criterion to use least sum of squares of the differences.
-    2. Provide error checking for input R, G, B values to be within the interval [0, 255].
-    3. Provide different ways to specify the input RGB values, aside from the (R, G, B) values as done in the program above.
+    Color patterns finding in files matching some extensions.
     """
+    _DEFAULT_EXTENSIONS = ['scss', 'sass', 'css']
 
-    ColorHexCom = dict(json.load(open("color-hex_color-names.json", 'r')))
+    def __init__(self, extensions=None):
+        self.extensions = extensions or self._DEFAULT_EXTENSIONS
+        self._reg_hexacode = re.compile(r'#(?:[a-fA-F0-9]{1,6})\b')
+        self._reg_rgb = re.compile(r'rgb[a]{0,1}\(([^)]*)\)')
 
-    WebColorMap = dict(json.load(open("w3schools_color-names.json", 'r')))
+    def get_files(self, basedir):
+        """
+        Recursively search for files matching enabled extension from given base
+        directory.
 
-    ImageMagickColorMap = dict(json.load(open("imagemagick_color-names.json", 'r')))
+        Args:
+            basedir (str): A directory path where to perform recursive search.
 
-    @staticmethod
-    def rgbFromStr(s):
-        # s starts with a #.
-        r, g, b = int(s[1:3],16), int(s[3:5], 16),int(s[5:7], 16)
-        return r, g, b
+        Returns:
+            list: List of ``pathlib.Path`` objects for each finded files.
+        """
+        found_for_extension = []
 
-    @staticmethod
-    def findNearestWebColorName((R,G,B)):
-        return ColorNames.findNearestColorName((R,G,B),ColorNames.WebColorMap)
+        for ext in self.extensions:
+            found = Path(basedir).resolve().glob('**/*.{}'.format(ext))
+            found_for_extension.extend(found)
 
-    @staticmethod
-    def findNearestImageMagickColorName((R,G,B)):
-        return ColorNames.findNearestColorName((R,G,B),ColorNames.ImageMagickColorMap)
+        return found_for_extension
 
-    @staticmethod
-    def findNearestColorHexComColorName((R,G,B)):
-        return ColorNames.findNearestColorName((R,G,B),ColorNames.ColorHexCom)
+    def read_file(self, path):
+        """
+        Read given file to find all color occurences.
 
-    @staticmethod
-    def findNearestColorName((R,G,B),Map):
-        mindiff = None
-        for d in Map:
-            r, g, b = ColorNames.rgbFromStr(Map[d])
-            diff = abs(R -r)*256 + abs(G-g)* 256 + abs(B- b)* 256
-            if mindiff is None or diff < mindiff:
-                mindiff = diff
-                mincolorname = d
-        return mincolorname
+        Args:
+            path (pathlib.Path): Path object to open.
 
+        Returns:
+            list: List of matching colors.
+        """
+        #print(path.read_text())
+        return self.find_hexacode(path.read_text())
 
 
+    def find_hexacode(self, source):
+        """
+        Find hexadecimal codes from given sources.
 
-if __name__ == "__main__":
-    # Open scss files to find colors
-    collected_color = {}
-    for filepath in SCSS_FILES:
-        print "* Opening filepath:", filepath
-        with open(filepath, 'rb') as fileobj:
-            content = fileobj.read()
+        Args:
+            source (str): Source string where to search for codes.
 
-            hex_values = re.findall(r'#(?:[a-fA-F0-9]{1,6})\b', content)
-            print "Hex codes:", hex_values
-            for item in hex_values:
-                clr = colorutils.Color(hex=item)
-                collected_color[clr.hex] = clr
-            print
+        Returns:
+            list: List of found codes. Every code are return in lowercase
+                with doubles. Codes are in arbitrary order.
+        """
+        found = [item.lower() for item in self._reg_hexacode.findall(source)]
+        return list(set(found))
 
-            rgb_values = re.findall(r'rgb[a]{0,1}\(([^\n\r()]+)\)', content)
-            print "Rgb(a) values:", rgb_values
-            for item in rgb_values:
-                rgb_colors = [v.strip() for v in item.split(',')]
-                # Remove alpha channel if any
-                if len(rgb_colors)>3:
-                    rgb_colors = rgb_colors[0:3]
-                rgb_colors = [int(v) for v in rgb_colors]
-                clr = colorutils.Color(rgb=tuple(rgb_colors))
-                collected_color[clr.hex] = clr
-            print
+    def find_rgb(self, source):
+        """
+        Find rgb colors from given sources
 
-    """
-    Print out all finded colors, named from the given map, using "nearest" finding
-    to find a name when the color does not exist in the map
-    """
-    print len(collected_color)
-    #print json.dumps(collected_color, indent=4)
-    for hex_name, color in collected_color.items():
-        print hex_name, ":", ColorNames.findNearestColorHexComColorName(color.rgb), ColorNames.findNearestImageMagickColorName(color.rgb)
-    #print
+        Currently not supported until i find how to convert 255 notation to
+        float notation (required from 'colour').
+
+        Args:
+            source (str): Source string where to search for rgb[a] occurences.
+
+        Returns:
+            list: List of found values.
+        """
+        found = self._reg_rgb.findall(source)
+
+        values = set([])
+        for item in found:
+            # Rgb with alpha, ignore alpha
+            segments = [v.strip() for v in item.split(',')]
+            if item.startswith('#'):
+                Color(segments[0])
+                values.add(segments[0])
+            elif len(item) > 3:
+                Color(rgb=segments[0:3])
+                values.add(",".join(segments[0:3]))
+            # Rgb
+            elif len(item) > 2:
+                Color(rgb=segments[0:3])
+                values.add(",".join(segments[0:3]))
+            # Hexa with alpha, ignore alpha
+            elif len(item) > 1 and item.startswith('#'):
+                Color(segments[0])
+                values.add(segments[0])
+            # Hexa
+            # Everything else is assumed to be invalid
+
+        return list(values)
+
+    def search(self, basedir):
+        """
+        Search through files for every colors
+        """
+        found = set([])
+        for pathobject in self.get_files(basedir):
+            found.update(self.read_file(pathobject))
+
+        return list(found)

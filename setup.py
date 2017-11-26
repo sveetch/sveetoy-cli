@@ -26,6 +26,7 @@ setup(
         'click>=5.1,<6.0',
         'colorama',
         'colorlog',
+        'colour',
     ],
     entry_points={
         'console_scripts': [
