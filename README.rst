@@ -3,7 +3,7 @@
 .. _colorama: https://github.com/tartley/colorama
 .. _colorlog: https://github.com/borntyping/python-colorlog
 .. _Sveetoy: https://sveetch.github.io/Sveetoy/
-.. _colorutils: https://github.com/edaniszewski/colorutils
+.. _colour: https://github.com/vaab/colour
 
 ===================
 Sveetoy Commandline
@@ -25,3 +25,4 @@ Dependancies
 * `click`_ >=5.1, <6.0;
 * `colorama`_;
 * `colorlog`_;
+* `colour`_;

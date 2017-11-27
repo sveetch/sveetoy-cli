@@ -7,6 +7,8 @@ from sveetoy_cli.colors.finder import ColorFinder
 
 from pathlib import Path
 
+from colour import Color
+
 
 @pytest.mark.parametrize("extensions,attempted", [
     (
@@ -228,5 +230,5 @@ def test_search(settings, dirpath, extensions, attempts):
     finder = ColorFinder(extensions=extensions)
     found = finder.search(path)
 
-    print(found)
     assert sorted(found) == sorted(attempts)
+

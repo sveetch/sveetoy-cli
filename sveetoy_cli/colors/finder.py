@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 Try to find all used colors through all given scss/css files
@@ -61,7 +60,6 @@ class ColorFinder:
         Returns:
             list: List of matching colors.
         """
-        #print(path.read_text())
         return self.find_hexacode(path.read_text())
 
 
