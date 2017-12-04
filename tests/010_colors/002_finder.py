@@ -221,13 +221,39 @@ def test_read_file(settings, filepath, attempts):
         ['#222', '#8461a1', '#00ff00']
     ),
 ])
-def test_search(settings, dirpath, extensions, attempts):
-    """Hexadecimal codes finding"""
+def test_search_recursive_dir(settings, dirpath, extensions, attempts):
+    """Search color through files from dir"""
     basedir = settings.colors_path
 
     path = basedir / Path(dirpath)
 
     finder = ColorFinder(extensions=extensions)
+    found = finder.search(path)
+
+    assert sorted(found) == sorted(attempts)
+
+
+@pytest.mark.parametrize("filepath,attempts", [
+    (
+        "sample-1.scss",
+        ['#ff8702', '#6676a2', '#4c4c92']
+    ),
+    (
+        "dummy.txt",
+        ["#ff0000"]
+    ),
+    (
+        "empty/.keep",
+        []
+    ),
+])
+def test_search_from_file(settings, filepath, attempts):
+    """Search color through a single file"""
+    basedir = settings.colors_path
+
+    path = basedir / Path(filepath)
+
+    finder = ColorFinder()
     found = finder.search(path)
 
     assert sorted(found) == sorted(attempts)

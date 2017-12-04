@@ -31,13 +31,13 @@ class ColorFinder:
         self._reg_hexacode = re.compile(r'#(?:[a-fA-F0-9]{1,6})\b')
         self._reg_rgb = re.compile(r'rgb[a]{0,1}\(([^)]*)\)')
 
-    def get_files(self, basedir):
+    def get_files(self, path):
         """
         Recursively search for files matching enabled extension from given base
         directory.
 
         Args:
-            basedir (str): A directory path where to perform recursive search.
+            path (str): A directory path where to perform recursive search.
 
         Returns:
             list: List of ``pathlib.Path`` objects for each finded files.
@@ -45,23 +45,10 @@ class ColorFinder:
         found_for_extension = []
 
         for ext in self.extensions:
-            found = Path(basedir).resolve().glob('**/*.{}'.format(ext))
+            found = Path(path).resolve().glob('**/*.{}'.format(ext))
             found_for_extension.extend(found)
 
         return found_for_extension
-
-    def read_file(self, path):
-        """
-        Read given file to find all color occurences.
-
-        Args:
-            path (pathlib.Path): Path object to open.
-
-        Returns:
-            list: List of matching colors.
-        """
-        return self.find_hexacode(path.read_text())
-
 
     def find_hexacode(self, source):
         """
@@ -115,12 +102,38 @@ class ColorFinder:
 
         return list(values)
 
-    def search(self, basedir):
+    def read_file(self, path):
         """
-        Search through files for every colors
+        Read given file to find all color occurences.
+
+        Args:
+            path (pathlib.Path): Path object to open.
+
+        Returns:
+            list: List of finded colors.
+        """
+        return self.find_hexacode(path.read_text())
+
+    def search(self, path):
+        """
+        Search through file(s) for every colors
+
+        Args:
+            path (pathlib.Path): Path object where to search colors. Either:
+
+                * A directory to recursively search for files ending with one
+                  of ``ColorFinder.extensions``.
+                * A single file (with any or no extension).
+
+        Returns:
+            list: List of finded colors.
         """
         found = set([])
-        for pathobject in self.get_files(basedir):
-            found.update(self.read_file(pathobject))
+
+        if path.is_dir():
+            for pathobject in self.get_files(path):
+                found.update(self.read_file(pathobject))
+        elif path.is_file():
+            found = set(self.read_file(path))
 
         return list(found)

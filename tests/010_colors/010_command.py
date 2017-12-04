@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
 
+from pathlib import Path
+
 import pytest
 
 import click
@@ -20,15 +22,11 @@ def test_empty(caplog, settings):
         # Default verbosity
         result = runner.invoke(cli_frontend, ['colors'])
 
-        assert caplog.record_tuples == [
-            (
-                'sveetoy',
-                50,
-                'At least one argument is required for a Sass source file'
-            ),
-        ]
+        assert caplog.record_tuples == []
 
-        assert result.exit_code == 1
+        assert 'Error: Missing argument "source".' in result.output
+
+        assert result.exit_code == 2
 
 
 def test_doesnotexists(caplog, settings):
@@ -44,26 +42,25 @@ def test_doesnotexists(caplog, settings):
 
         assert caplog.record_tuples == []
 
-        assert 'Invalid value for "sources": Path "foo.txt" does not exist.' in result.output
+        assert 'Invalid value for "source": Path "foo.txt" does not exist.' in result.output
         assert result.exit_code == 2
 
 
-def test_single(caplog, settings):
-    """Invoked without required arguments"""
+def test_source_as_file(caplog, settings):
+    """Invoked with a file path as source argument"""
     runner = CliRunner()
+
+    source_path = 'foo.txt'
 
     # Temporary isolated current dir
     with runner.isolated_filesystem():
         test_cwd = os.getcwd()
 
-        source_args = [
-            'sample-1.scss',
-        ]
-        source_args = [os.path.join(settings.colors_path, item)
-                       for item in source_args]
+        source_file = Path(test_cwd) / source_path
+        source_file.write_text('Dummy')
 
         # Default verbosity
-        result = runner.invoke(cli_frontend, ['colors'] + source_args)
+        result = runner.invoke(cli_frontend, ['colors'] + [source_path])
 
         assert result.exit_code == 0
 
@@ -75,3 +72,29 @@ def test_single(caplog, settings):
             ),
         ]
 
+
+def test_source_as_directory(caplog, settings):
+    """Invoked with a directory path as source argument"""
+    runner = CliRunner()
+
+    source_path = 'bar'
+
+    # Temporary isolated current dir
+    with runner.isolated_filesystem():
+        test_cwd = os.getcwd()
+
+        source_dir = Path(test_cwd) / source_path
+        source_dir.mkdir(parents=True)
+
+        # Default verbosity
+        result = runner.invoke(cli_frontend, ['colors'] + [source_path])
+
+        assert result.exit_code == 0
+
+        assert caplog.record_tuples == [
+            (
+                'sveetoy',
+                20,
+                "Searching files for colors"
+            ),
+        ]

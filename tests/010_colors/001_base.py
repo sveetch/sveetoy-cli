@@ -3,7 +3,7 @@ import pytest
 
 from colour import Color
 
-from sveetoy_cli.colors import rgbint2rgbfloat, rgbfloat2rgbint
+from sveetoy_cli.colors import toColourRGB, toCssRGB
 
 
 @pytest.mark.parametrize("hexa,rgb_int", [
@@ -48,14 +48,14 @@ from sveetoy_cli.colors import rgbint2rgbfloat, rgbfloat2rgbint
         (83, 169, 63),
     ),
 ])
-def test_rgbint2rgbfloat(hexa, rgb_int):
+def test_toColourRGB(hexa, rgb_int):
     """
     Test rgb value conversion from integer to float is correct using long
     hexadecimal to compare
     """
     clr = Color(hexa)
 
-    rgb_floats = rgbint2rgbfloat(rgb_int)
+    rgb_floats = toColourRGB(rgb_int)
 
     assert hexa == Color(rgb=rgb_floats).hex_l
 
@@ -110,9 +110,9 @@ def test_rgbint2rgbfloat(hexa, rgb_int):
         (0.3254901960784314, 0.6627450980392157, 0.24705882352941178),
     ),
 ])
-def test_rgbfloat2rgbint(hexa, rgb_int, rgb_float):
+def test_toCssRGB(hexa, rgb_int, rgb_float):
     """
     Test rgb value conversion from integer to float is correct
     """
     # Compare attempt integers to converted float to int
-    assert rgb_int == rgbfloat2rgbint(rgb_float)
+    assert rgb_int == toCssRGB(rgb_float)
