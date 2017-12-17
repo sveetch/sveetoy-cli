@@ -30,13 +30,13 @@ class ColorNames(ColorRegistry):
 
         Returns:
             tuple: A tuple of nearest color name and its original hexadecimal
-                code than can differ from code from given ``hexa`` argument.
+                code than can differ from given ``hexa`` argument.
         """
         min_diff = None
         searched_color = Color(hexa)
         searched_red, searched_green, searched_blue = toCssRGB(searched_color.rgb)
 
-        for available_hexa, available_name in self.hexa_map.items():
+        for available_hexa, available_name in self.hexa_map:
             r, g, b = toCssRGB(Color(available_hexa).rgb)
 
             # Compute RGB values difference between colors
