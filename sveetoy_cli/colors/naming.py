@@ -10,9 +10,10 @@ from colour import Color
 
 from sveetoy_cli.colors import toColourRGB, toCssRGB
 from sveetoy_cli.colors.registry import ColorRegistry
+from sveetoy_cli.colors.dumper import ColorDump
 
 
-class ColorNames(ColorRegistry):
+class ColorNames(ColorDump, ColorRegistry):
     def nearest_color_name(self, hexa):
         """
         Find nearest color name from color name registry.
@@ -30,11 +31,13 @@ class ColorNames(ColorRegistry):
 
         Returns:
             tuple: A tuple of nearest color name and its original hexadecimal
-                code than can differ from given ``hexa`` argument.
+                code than can differ from given ``hexa`` argument. If no color
+                has been finded, return ``None``.
         """
         min_diff = None
         searched_color = Color(hexa)
         searched_red, searched_green, searched_blue = toCssRGB(searched_color.rgb)
+        color_name = original_hex = None
 
         for available_hexa, available_name in self.hexa_map:
             r, g, b = toCssRGB(Color(available_hexa).rgb)
@@ -64,6 +67,8 @@ class ColorNames(ColorRegistry):
         batchs = {}
 
         for code in colors:
-            batchs[code] = self.nearest_color_name(code)
+            found = self.nearest_color_name(code)
+            if found[0] is not None:
+                batchs[code] = found
 
         return batchs

@@ -3,8 +3,6 @@ import io, json
 
 from pathlib import Path
 
-from collections import OrderedDict
-
 
 class ColorRegistry:
     """
@@ -18,11 +16,13 @@ class ColorRegistry:
 
         self.map_path = datas_dirpath / "names.json"
 
+        self.name_map, self.hexa_map = {}, {}
+
     def load(self, path=None):
         """
         Load registry and set maps
 
-        Args:
+        Keyword args:
             path (pathlib.Path): Optionnal path object to open instead of
                 default of from ``ColorRegistry.map_path``.
         """
