@@ -5,6 +5,8 @@ import click
 
 from sveetoy_cli.cli.version import version_command
 from sveetoy_cli.cli.colors import colors_command
+from sveetoy_cli.cli.export import export_command
+from sveetoy_cli.cli.schemes import schemes_command
 from sveetoy_cli.logs import init_logger
 
 
@@ -46,4 +48,6 @@ def cli_frontend(ctx, verbose):
 
 # Attach commands methods to the main grouper
 cli_frontend.add_command(colors_command, name="colors")
+cli_frontend.add_command(export_command, name="export")
+cli_frontend.add_command(schemes_command, name="schemes")
 cli_frontend.add_command(version_command, name="version")

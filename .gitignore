@@ -13,3 +13,9 @@
 .tox
 .cache
 __pycache__
+
+#test output
+/*.sass
+/*.html
+/*.txt
+/*.json
